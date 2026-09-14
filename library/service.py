@@ -29,10 +29,12 @@ class LibraryService:
     def add_book(self, book: Book) -> None:
         if book.author.author_id not in self.authors:
             self.authors[book.author.author_id] = book.author
+
         elif self.authors[book.author.author_id].full_name != book.author.full_name:
             raise DuplicateEntityError(
                 f"Author with this ID {book.author.author_id} already exists!"
             )
+
         if book.isbn in self.books:
             raise DuplicateEntityError(f"Book with ISBN {book.isbn} already exists!")
         self.books[book.isbn] = book
@@ -45,27 +47,33 @@ class LibraryService:
     def borrow_book(self, isbn: str, user_id: int, borrowed_on: date) -> Loan:
         if isbn not in self.books:
             raise EntityNotFoundError(f"Book with ISBN {isbn} not exists!")
+
         elif user_id not in self.users:
             raise EntityNotFoundError(f"User with ID {user_id} not exists!")
+
         count_loans = 0
         count_books = 0
+
         for loan in self.loans:
             if loan.user_id == user_id and loan.returned_on is None:
                 count_loans += 1
             if loan.isbn == isbn and loan.returned_on is None:
                 count_books += 1
+
         if count_loans >= self.users[user_id].books_limit:
             raise BorrowingLimitError(
                 f"Exceeds the limit of books [{count_loans}/{self.users[user_id].books_limit}]"
             )
         elif count_books >= self.books[isbn].total_copies:
             raise BookUnavailableError(f"These books (ISBN: {isbn}) are out of stock")
+
         loan = Loan(
             isbn=isbn,
             user_id=user_id,
             borrowed_on=borrowed_on,
             due_on=borrowed_on + timedelta(days=self.users[user_id].days_limit),
         )
+
         self.loans.append(loan)
         return loan
 
@@ -74,6 +82,7 @@ class LibraryService:
             raise EntityNotFoundError(f"Book with ISBN {isbn} not exists!")
         elif user_id not in self.users:
             raise EntityNotFoundError(f"User with ID {user_id} not exists!")
+
         for loan in self.loans:
             if (
                 loan.isbn == isbn
@@ -86,6 +95,7 @@ class LibraryService:
                     )
                 loan.returned_on = returned_on
                 return loan
+
         raise ActiveLoanNotFoundError("Loan not found!")
 
     def get_overdue_loans(self, on_date: date) -> list[Loan]:
@@ -123,6 +133,7 @@ class LibraryService:
         has_active_loans = any(
             loan.isbn == isbn and loan.returned_on is None for loan in self.loans
         )
+
         if has_active_loans:
             raise BookHasActiveLoansError(
                 f"Cannot remove book with ISBN {isbn}: it has active loans"
