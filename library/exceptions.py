@@ -16,3 +16,11 @@ class BorrowingLimitError(LibraryError):
 
 class BookUnavailableError(LibraryError):
     pass
+
+
+class ActiveLoanNotFoundError(LibraryError):
+    pass
+
+
+class InvalidReturnDateError(LibraryError):
+    pass

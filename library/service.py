@@ -1,10 +1,12 @@
 from datetime import date, timedelta
 
 from .exceptions import (
+    ActiveLoanNotFoundError,
     BookUnavailableError,
     BorrowingLimitError,
     DuplicateEntityError,
     EntityNotFoundError,
+    InvalidReturnDateError,
 )
 from .models import Author, Book, Loan, User
 
@@ -65,3 +67,22 @@ class LibraryService:
         )
         self.loans.append(loan)
         return loan
+
+    def return_book(self, isbn: str, user_id: int, returned_on: date) -> Loan:
+        if isbn not in self.books:
+            raise EntityNotFoundError(f"Book with ISBN {isbn} not exists!")
+        elif user_id not in self.users:
+            raise EntityNotFoundError(f"User with ID {user_id} not exists!")
+        for loan in self.loans:
+            if (
+                loan.isbn == isbn
+                and loan.user_id == user_id
+                and loan.returned_on is None
+            ):
+                if returned_on < loan.borrowed_on:
+                    raise InvalidReturnDateError(
+                        "Return date cannot be earlier than borrow date"
+                    )
+                loan.returned_on = returned_on
+                return loan
+        raise ActiveLoanNotFoundError("Loan not found!")
