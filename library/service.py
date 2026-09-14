@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 from .exceptions import (
     ActiveLoanNotFoundError,
+    BookHasActiveLoansError,
     BookUnavailableError,
     BorrowingLimitError,
     DuplicateEntityError,
@@ -114,3 +115,17 @@ class LibraryService:
             for book in self.books.values()
             if normalized_query in book.author.full_name.lower()
         ]
+
+    def remove_book(self, isbn: str) -> None:
+        if isbn not in self.books:
+            raise EntityNotFoundError(f"Book with ISBN {isbn} does not exist")
+
+        has_active_loans = any(
+            loan.isbn == isbn and loan.returned_on is None for loan in self.loans
+        )
+        if has_active_loans:
+            raise BookHasActiveLoansError(
+                f"Cannot remove book with ISBN {isbn}: it has active loans"
+            )
+
+        del self.books[isbn]

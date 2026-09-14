@@ -24,3 +24,7 @@ class ActiveLoanNotFoundError(LibraryError):
 
 class InvalidReturnDateError(LibraryError):
     pass
+
+
+class BookHasActiveLoansError(LibraryError):
+    pass
