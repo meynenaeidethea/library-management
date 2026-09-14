@@ -86,3 +86,10 @@ class LibraryService:
                 loan.returned_on = returned_on
                 return loan
         raise ActiveLoanNotFoundError("Loan not found!")
+
+    def get_overdue_loans(self, on_date: date) -> list[Loan]:
+        return [
+            loan
+            for loan in self.loans
+            if loan.returned_on is None and loan.due_on < on_date
+        ]
