@@ -93,3 +93,24 @@ class LibraryService:
             for loan in self.loans
             if loan.returned_on is None and loan.due_on < on_date
         ]
+
+    def get_book_by_isbn(self, isbn: str) -> Book:
+        if isbn not in self.books:
+            raise EntityNotFoundError(f"Book with ISBN {isbn} does not exist")
+        return self.books[isbn]
+
+    def search_books_by_title(self, query: str) -> list[Book]:
+        normalized_query = query.lower()
+        return [
+            book
+            for book in self.books.values()
+            if normalized_query in book.title.lower()
+        ]
+
+    def search_books_by_author(self, query: str) -> list[Book]:
+        normalized_query = query.lower()
+        return [
+            book
+            for book in self.books.values()
+            if normalized_query in book.author.full_name.lower()
+        ]
