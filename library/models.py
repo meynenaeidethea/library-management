@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date
 from typing import ClassVar
@@ -18,10 +19,20 @@ class Book:
 
 
 @dataclass
-class User:
+class User(ABC):
     user_id: int
     name: str
+
     # правила займа: лимит книг и число дней
+    @property
+    @abstractmethod
+    def books_limit(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def days_limit(self) -> int:
+        pass
 
 
 class Student(User):

@@ -8,3 +8,11 @@ class DuplicateEntityError(LibraryError):
 
 class EntityNotFoundError(LibraryError):
     pass
+
+
+class BorrowingLimitError(LibraryError):
+    pass
+
+
+class BookUnavailableError(LibraryError):
+    pass

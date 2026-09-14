@@ -1,4 +1,11 @@
-from .exceptions import DuplicateEntityError
+from datetime import date, timedelta
+
+from .exceptions import (
+    BookUnavailableError,
+    BorrowingLimitError,
+    DuplicateEntityError,
+    EntityNotFoundError,
+)
 from .models import Author, Book, Loan, User
 
 
@@ -31,3 +38,30 @@ class LibraryService:
         if user.user_id in self.users:
             raise DuplicateEntityError(f"User with ID {user.user_id} already exists!")
         self.users[user.user_id] = user
+
+    def borrow_book(self, isbn: str, user_id: int, borrowed_on: date) -> Loan:
+        if isbn not in self.books:
+            raise EntityNotFoundError(f"Book with ISBN {isbn} not exists!")
+        elif user_id not in self.users:
+            raise EntityNotFoundError(f"User with ID {user_id} not exists!")
+        count_loans = 0
+        count_books = 0
+        for loan in self.loans:
+            if loan.user_id == user_id and loan.returned_on is None:
+                count_loans += 1
+            if loan.isbn == isbn and loan.returned_on is None:
+                count_books += 1
+        if count_loans >= self.users[user_id].books_limit:
+            raise BorrowingLimitError(
+                f"Exceeds the limit of books [{count_loans}/{self.users[user_id].books_limit}]"
+            )
+        elif count_books >= self.books[isbn].total_copies:
+            raise BookUnavailableError(f"These books (ISBN: {isbn}) are out of stock")
+        loan = Loan(
+            isbn=isbn,
+            user_id=user_id,
+            borrowed_on=borrowed_on,
+            due_on=borrowed_on + timedelta(days=self.users[user_id].days_limit),
+        )
+        self.loans.append(loan)
+        return loan
